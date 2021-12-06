@@ -9,7 +9,7 @@ import (
 )
 
 func main() {
-	f, err := os.Open("../input")
+	f, err := os.Open("./input")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -28,10 +28,19 @@ func main() {
 		measurements = append(measurements, int)
 	}
 
+	var windowedMeasurements []int
+
+	for i, val := range measurements {
+		if i+1 <= len(measurements)-1 && i+2 <= len(measurements)-1 {
+			sum := val + measurements[i+1] + measurements[i+2]
+			windowedMeasurements = append(windowedMeasurements, sum)
+		}
+	}
+
 	var count int
 
-	for i, val := range measurements[1:] {
-		if val > measurements[i] {
+	for i, val := range windowedMeasurements[1:] {
+		if val > windowedMeasurements[i] {
 			count++
 		}
 	}
