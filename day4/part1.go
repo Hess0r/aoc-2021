@@ -20,10 +20,9 @@ type board struct {
 func main() {
 	input := readInput()
 
-	var boards []board
+	var boards []*board
 
-	drawn := input[0]
-	fmt.Println(drawn)
+	drawn := strings.Split(input[0], ",")
 
 	input = input[2:]
 
@@ -33,7 +32,6 @@ func main() {
 		matrixLines := input[idx : idx+5]
 		var matrix [][]string
 		for _, line := range matrixLines {
-			// splitLine := strings.Split(line, " ")
 			var splitLine []string
 			i := 0
 			for i < len(line) {
@@ -42,12 +40,59 @@ func main() {
 			}
 			matrix = append(matrix, splitLine)
 		}
-		boards = append(boards, board{matrix: matrix})
+		boards = append(boards, &board{matrix: matrix})
 		idx += 6
 	}
 
-	fmt.Println(boards[0].matrix[0][0])
-	fmt.Println(boards[0].matrix[4][4])
+	var winnerBoard *board
+
+	for _, number := range drawn {
+		fmt.Println(number)
+		for _, board := range boards {
+			won := board.markBoard(number)
+			if won == true {
+				winnerBoard = board
+				break
+			}
+		}
+		if winnerBoard != nil {
+			break
+		}
+	}
+
+	fmt.Println(winnerBoard)
+}
+
+func (b *board) markBoard(n string) bool {
+	for rowIdx, row := range b.matrix {
+		for colIdx, num := range row {
+			if num == n {
+				b.marks = append(b.marks, mark{
+					row: rowIdx,
+					col: colIdx,
+				})
+			}
+		}
+	}
+
+	return b.checkMarks()
+}
+
+func (b *board) checkMarks() bool {
+	for row := 0; row < 5; row++ {
+		marksInCol := 0
+		for col := 0; col < 5; col++ {
+			for _, mark := range b.marks {
+				if mark.col == col && mark.row == row {
+					marksInCol++
+				}
+			}
+		}
+		if marksInCol == 5 {
+			return true
+		}
+	}
+	return false
 }
 
 func readInput() []string {
@@ -63,7 +108,6 @@ func readInput() []string {
 
 	for scanner.Scan() {
 		line := scanner.Text()
-		fmt.Println(line)
 		input = append(input, line)
 	}
 	return input
