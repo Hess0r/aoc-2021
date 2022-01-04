@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"os"
+	"strconv"
 	"strings"
 )
 
@@ -13,8 +14,9 @@ type mark struct {
 }
 
 type board struct {
-	matrix [][]string
-	marks  []mark
+	matrix      [][]string
+	marks       []mark
+	winnerMarks []mark
 }
 
 func main() {
@@ -45,13 +47,14 @@ func main() {
 	}
 
 	var winnerBoard *board
+	var lastNumber string
 
 	for _, number := range drawn {
-		fmt.Println(number)
 		for _, board := range boards {
 			won := board.markBoard(number)
 			if won == true {
 				winnerBoard = board
+				lastNumber = number
 				break
 			}
 		}
@@ -60,7 +63,9 @@ func main() {
 		}
 	}
 
-	fmt.Println(winnerBoard)
+	score := winnerBoard.calculateScore(lastNumber)
+
+	fmt.Println(score)
 }
 
 func (b *board) markBoard(n string) bool {
@@ -79,24 +84,56 @@ func (b *board) markBoard(n string) bool {
 }
 
 func (b *board) checkMarks() bool {
-	for row := 0; row < 5; row++ {
-		marksInCol := 0
-		for col := 0; col < 5; col++ {
-			for _, mark := range b.marks {
-				if mark.col == col && mark.row == row {
-					marksInCol++
-				}
+	if len(b.marks) < 5 {
+		return false
+	}
+	for col := 0; col < 5; col++ {
+		var sameCol []mark
+		var sameRow []mark
+		for _, mark := range b.marks {
+			if mark.col == col {
+				sameCol = append(sameCol, mark)
+			}
+			if mark.row == col {
+				sameRow = append(sameRow, mark)
 			}
 		}
-		if marksInCol == 5 {
+		if len(sameCol) == 5 {
+			b.winnerMarks = sameCol
+			return true
+		}
+		if len(sameRow) == 5 {
+			b.winnerMarks = sameRow
 			return true
 		}
 	}
 	return false
 }
 
+func (b *board) calculateScore(ln string) int {
+	lnI, _ := strconv.Atoi(ln)
+	sum := 0
+
+	for row := 0; row < 5; row++ {
+		for col := 0; col < 5; col++ {
+			unmarked := true
+			for _, mark := range b.marks {
+				if mark.col == col && mark.row == row {
+					unmarked = false
+				}
+			}
+			if unmarked {
+				val, _ := strconv.Atoi(b.matrix[row][col])
+				sum += val
+			}
+		}
+	}
+
+	return sum * lnI
+}
+
 func readInput() []string {
-	f, err := os.Open("./testinput")
+	f, err := os.Open("./input")
 	if err != nil {
 		panic(err)
 	}
